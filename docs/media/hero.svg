@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-labelledby="title desc">
+  <title id="title">Steam Art Studio — Tu biblioteca. Tu estilo.</title>
+  <desc id="desc">Cabecera oscura y turquesa con tres tarjetas de arte abstracto. Aplicación independiente para Linux y Windows.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b111a"/><stop offset="1" stop-color="#122d32"/></linearGradient>
+    <linearGradient id="mint" x2="1" y2="1"><stop stop-color="#88f5d9"/><stop offset="1" stop-color="#279c96"/></linearGradient>
+    <linearGradient id="purple" x2="1" y2="1"><stop stop-color="#8864cc"/><stop offset="1" stop-color="#242040"/></linearGradient>
+    <linearGradient id="blue" x2="1" y2="1"><stop stop-color="#386a98"/><stop offset="1" stop-color="#162a41"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#a7f3df" stroke-opacity=".04"/></pattern>
+  </defs>
+  <rect width="1280" height="400" rx="24" fill="url(#bg)"/>
+  <rect width="1280" height="400" rx="24" fill="url(#grid)"/>
+  <circle cx="1130" cy="80" r="230" fill="none" stroke="#70e2cb" stroke-opacity=".10"/>
+  <circle cx="1130" cy="80" r="190" fill="none" stroke="#70e2cb" stroke-opacity=".07"/>
+  <rect x="60" y="52" width="34" height="4" rx="2" fill="#70e2cb"/>
+  <text x="108" y="59" fill="#a3bfc6" font-family="DejaVu Sans,Arial,sans-serif" font-size="13" letter-spacing="3">STEAM ART STUDIO</text>
+  <text x="60" y="153" fill="#f1f6fa" font-family="DejaVu Sans,Arial,sans-serif" font-size="58" font-weight="700">Tu biblioteca.</text>
+  <text x="60" y="224" fill="#70e2cb" font-family="DejaVu Sans,Arial,sans-serif" font-size="58" font-weight="700">Tu estilo.</text>
+  <text x="63" y="272" fill="#afc3cc" font-family="DejaVu Sans,Arial,sans-serif" font-size="18">Arte, animaciones y copias en un solo espacio.</text>
+  <rect x="62" y="310" width="157" height="33" rx="16" fill="#70e2cb" fill-opacity=".10" stroke="#70e2cb" stroke-opacity=".25"/>
+  <text x="82" y="332" fill="#c4f4e9" font-family="DejaVu Sans,Arial,sans-serif" font-size="13">LINUX + WINDOWS</text>
+  <text x="241" y="332" fill="#94acb9" font-family="DejaVu Sans,Arial,sans-serif" font-size="13">INDEPENDIENTE · CÓDIGO ABIERTO</text>
+  <g transform="translate(792 88) rotate(-12 80 120)">
+    <rect width="156" height="232" rx="15" fill="#101923" stroke="#66839a" stroke-opacity=".45"/>
+    <rect x="9" y="9" width="138" height="183" rx="9" fill="url(#purple)"/>
+    <path d="M9 170L60 75L100 150L130 104L147 170V192H9Z" fill="#121426" fill-opacity=".8"/>
+    <path d="M24 210H92" stroke="#8494a9" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(1030 81) rotate(13 80 120)">
+    <rect width="156" height="232" rx="15" fill="#101923" stroke="#66839a" stroke-opacity=".45"/>
+    <rect x="9" y="9" width="138" height="183" rx="9" fill="url(#blue)"/>
+    <circle cx="77" cy="80" r="44" fill="none" stroke="#9bd1db" stroke-opacity=".5"/>
+    <path d="M9 168L54 102L85 145L113 91L147 170V192H9Z" fill="#102131"/>
+    <path d="M24 210H104" stroke="#8494a9" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(910 58)">
+    <rect width="172" height="268" rx="17" fill="#12242b" stroke="#70e2cb" stroke-width="2"/>
+    <rect x="10" y="10" width="152" height="214" rx="10" fill="url(#mint)"/>
+    <circle cx="87" cy="80" r="40" fill="none" stroke="#dcfff4" stroke-opacity=".5"/>
+    <circle cx="87" cy="80" r="57" fill="none" stroke="#dcfff4" stroke-opacity=".2"/>
+    <path d="M10 188L64 84L105 165L134 126L162 188V224H10Z" fill="#102b30"/>
+    <path d="M28 246H111" stroke="#a1eadb" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="145" cy="246" r="8" fill="#70e2cb"/>
+    <path d="M141 246L144 249L149 243" fill="none" stroke="#103c35" stroke-width="2"/>
+  </g>
+</svg>

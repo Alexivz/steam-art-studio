@@ -1,4 +1,9 @@
-# Distribución multiplataforma — 1.0.0
+# Distribución y compatibilidad
+
+**Actualización 1.0.1:** AppImage Linux x86_64 y fuentes nuevos con la corrección
+de consultas SteamGridDB. Windows, Flatpak, DEB y RPM permanecen en **1.0.0**:
+no incluyen el parche. Ver [notas y validación de 1.0.1](RELEASE-1.0.1.md).
+La matriz y los ejemplos de otros formatos que siguen describen la entrega 1.0.0.
 
 Primera versión oficial del proyecto independiente, no certificación universal ni
 afiliación con Valve. Canal: <https://github.com/Alexivz/steam-art-studio/releases>.
@@ -34,8 +39,8 @@ antes de ejecutar. No prueban la identidad del autor; no hay firma de código.
 
 ```bash
 # AppImage: sin instalar. Si no hay FUSE, usa --appimage-extract-and-run.
-chmod +x steam-art-studio-1.0.0-linux-x86_64.AppImage
-./steam-art-studio-1.0.0-linux-x86_64.AppImage
+chmod +x steam-art-studio-1.0.1-linux-x86_64.AppImage
+./steam-art-studio-1.0.1-linux-x86_64.AppImage
 
 # Flatpak local: añadir Flathub si todavía no está configurado para este usuario.
 flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo

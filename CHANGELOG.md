@@ -1,5 +1,25 @@
 # Cambios
 
+## 1.0.1 — Corrección de consultas Linux
+
+- API: hasta 30 s para la primera respuesta y 30 s sin datos, sin depender de
+  una nueva negociación TLS. Corrige el corte de 5 s en conexiones reutilizadas.
+- Un único reintento automático ante timeout/transitorios, con límite global de
+  90 s por petición incluyendo reintento/redirecciones. No reintentar rechazos
+  TLS, autenticación ni límites 429; se mantiene Retry-After.
+- La galería distingue consulta fallida de resultado vacío e incluye
+  **Reintentar búsqueda**, sin enviar al panel de descargas de originales.
+- Sin cambios en calidad, cola, copias, límites de originales ni destinos Steam.
+- Regresiones de primera respuesta lenta en TLS nuevo/reutilizado, inactividad,
+  límite total, cancelación, reintento, seguridad y recuperación desde la GUI.
+- Publicación del AppImage Linux y fuentes. Windows, Flatpak, DEB y RPM siguen
+  disponibles en 1.0.0; no se presentan como paquetes corregidos 1.0.1.
+- Nueva portada del repositorio con cabecera, capturas de demostración, enlaces
+  directos de descarga y acceso organizado a las guías.
+
+La captura permite identificar el timeout, no la causa concreta de la lentitud
+en el equipo afectado. Falta confirmar allí con su distribución y paquete.
+
 ## 1.0.0 — Primera versión oficial de Steam Art Studio
 
 - Lanzamiento público del proyecto independiente en GitHub Releases, bajo

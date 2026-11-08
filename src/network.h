@@ -2,6 +2,7 @@
 #include "cache.h"
 #include "types.h"
 #include <QHash>
+#include <QElapsedTimer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
@@ -14,6 +15,9 @@ struct NetworkPolicy {
     // Originals can be much larger than API responses/thumbnails. All limits
     // remain bounded; receiving bytes resets inactivity, never the deadline.
     int originalConnectionMs = 15000, originalTransferMs = 30000, originalDeadlineMs = 180000;
+    // API requests may reuse TLS, so encrypted() is not a connection milestone.
+    // Bound first response and idle separately; total includes retry/redirects.
+    int apiResponseMs = 30000, apiTransferMs = 30000, apiDeadlineMs = 90000;
 };
 class Network : public QObject {
     Q_OBJECT
@@ -38,9 +42,10 @@ private:
         QString kind, key, timeoutMessage;
         QVector<quint64> tokens;
         QByteArray data;
+        QElapsedTimer elapsed;
         QNetworkReply *reply = nullptr;
         int attempts = 0, redirects = 0;
-        bool oversized = false, active = false, timedOut = false, cancelled = false;
+        bool oversized = false, active = false, timedOut = false, cancelled = false, deadlineExpired = false;
     };
     CacheStore *m_cache;
     QNetworkAccessManager m_manager;

@@ -13,6 +13,7 @@ struct FakeResponse {
     bool stall = false, metadata = true;
     QNetworkReply::NetworkError error = QNetworkReply::NoError;
     qint64 stallAfterBytes = 0;
+    bool encrypted = false;
 };
 class FakeReply : public QNetworkReply {
 public:
@@ -21,6 +22,7 @@ public:
         setAttribute(QNetworkRequest::HttpStatusCodeAttribute, response.status); setHeader(QNetworkRequest::ContentTypeHeader, response.mime);
         if (response.redirect.isValid()) setAttribute(QNetworkRequest::RedirectionTargetAttribute, response.redirect);
         if (!response.retryAfter.isEmpty()) setRawHeader("Retry-After", response.retryAfter);
+        if (response.encrypted) QTimer::singleShot(0, this, [this] { if (!isFinished()) emit encrypted(); });
         QTimer::singleShot(response.delay, this, [this] { if (isFinished()) return; if (m_response.metadata) emit metaDataChanged(); if (!m_response.stall) tick(); });
     }
     void abort() override {

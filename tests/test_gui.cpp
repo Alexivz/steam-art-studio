@@ -387,6 +387,34 @@ private slots:
         answer(QMessageBox::Yes); action(window, "restoreBackup")->click(); QTRY_COMPARE(read(target), original); QTRY_COMPARE(backups->item(0)->data(Qt::UserRole + 1).toString(), QString("restored"));
         QVERIFY(!QApplication::activeModalWidget()); QVERIFY(!action(window, "restoreBackup")->isEnabled()); QCOMPARE(transport.requests.size(), 0);
     }
+    void failedSearchIsNotAnEmptyResultAndCanRetryWithoutSteamWrites() {
+        QTemporaryDir temp("/tmp/opencode/studio-gui-search-XXXXXX"); QVERIFY(temp.isValid());
+        const auto steam = temp.path() + "/steam", data = temp.path() + "/data", cache = temp.path() + "/cache";
+        auto write = [](const QString &path, const QByteArray &bytes) { QDir().mkpath(QFileInfo(path).absolutePath()); QFile f(path); return f.open(QIODevice::WriteOnly) && f.write(bytes) == bytes.size(); };
+        auto read = [](const QString &path) { QFile f(path); return f.open(QIODevice::ReadOnly) ? f.readAll() : QByteArray(); };
+        QVERIFY(write(steam + "/config/loginusers.vdf", "\"users\" { \"76561197960265770\" { \"MostRecent\" \"1\" } }"));
+        QVERIFY(write(steam + "/steamapps/appmanifest_100.acf", "\"AppState\" { \"appid\" \"100\" \"name\" \"Synthetic Game\" }"));
+        const auto target = steam + "/userdata/42/config/grid/100p.png"; QDir().mkpath(QFileInfo(target).absolutePath()); QDir().mkpath(data);
+        QImage image(32, 48, QImage::Format_ARGB32); image.fill(Qt::blue); QVERIFY(image.save(target)); const auto original = read(target);
+        CacheStore store(cache); const auto file = store.importFile(target); Game game; game.appId = 100; game.steamRoot = steam; game.userId = "42"; game.name = "Synthetic Game";
+        QVERIFY(DraftStore(data, cache).save({{game, "capsule", file, "Synthetic", false}}));
+        FakeNetwork transport; FakeResponse timeout; timeout.status = 0; timeout.error = QNetworkReply::TimeoutError;
+        transport.responses.enqueue(timeout); transport.responses.enqueue(timeout);
+        FakeResponse lookup; lookup.mime = "application/json"; lookup.body = "{\"success\":true,\"data\":{\"id\":77}}"; lookup.delay = 100; transport.responses.enqueue(lookup);
+        FakeResponse empty; empty.mime = "application/json"; empty.body = "{\"success\":true,\"data\":[],\"total\":0}"; transport.responses.enqueue(empty);
+        Window window(data, cache, false, nullptr, &transport, {{steam, "Synthetic Steam only"}}); window.show();
+        auto *gallery = window.findChild<QListView *>("artGallery"); auto *retry = window.findChild<QPushButton *>("retryArtSearch"); QVERIFY(retry);
+        QTRY_COMPARE(window.findChild<QListView *>("libraryView")->model()->rowCount(), 1); QVERIFY(retry->isHidden());
+        window.findChild<QLineEdit *>("apiKeyInput")->setText(QString(32, 'x')); window.findChild<QPushButton *>("saveConnection")->click();
+        QTRY_VERIFY(!retry->isHidden()); QCOMPARE(transport.requests.size(), 2);
+        QVERIFY(gallery->accessibleDescription().contains("No se pudieron consultar")); QVERIFY(!gallery->accessibleDescription().contains("No hay diseños disponibles"));
+        QVERIFY(!action(window, "prepareArtwork")->isEnabled()); QCOMPARE(window.findChild<QListWidget *>("queueList")->count(), 1); QCOMPARE(read(target), original);
+        retry->click(); QVERIFY(retry->isHidden()); QVERIFY(gallery->accessibleDescription().contains("Buscando diseños"));
+        QTRY_VERIFY(gallery->accessibleDescription().contains("Sin diseños con estos filtros")); QVERIFY(retry->isHidden()); QCOMPARE(transport.requests.size(), 4);
+        QCOMPARE(window.findChild<QListWidget *>("queueList")->count(), 1); QCOMPARE(read(target), original); QVERIFY(window.findChild<QLineEdit *>("apiKeyInput")->text().isEmpty());
+        QVERIFY(!read(data + "/settings.ini").contains(QByteArray(32, 'x'))); QVERIFY(!QApplication::activeModalWidget());
+        if (!qEnvironmentVariableIsEmpty("STUDIO_SCREENSHOT_DIR")) window.saveScreenshot(qEnvironmentVariable("STUDIO_SCREENSHOT_DIR") + "/search-recovered.png");
+    }
 };
 QTEST_MAIN(GuiTests)
 #include "test_gui.moc"

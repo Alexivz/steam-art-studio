@@ -1,26 +1,102 @@
-# Steam Art Studio — todo en un espacio
+<div align="center">
 
-Aplicación independiente para Linux y Windows x86_64, en C++17/Qt 6, para personalizar las imágenes
-de Steam. Diseño oscuro con turquesa. No es oficial de Valve ni reemplaza Steam
-Art Manager.
+![Steam Art Studio: Tu biblioteca. Tu estilo.](docs/media/hero.svg)
 
-**Versión oficial del proyecto: 1.0.0 · GPL-3.0-only.** Primera entrega pública,
-con correcciones y mejoras futuras a partir de los informes de la comunidad.
-No es una aplicación oficial de Valve ni una garantía de ausencia de errores.
+# Steam Art Studio
 
-**[Descargar](https://github.com/Alexivz/steam-art-studio/releases/latest)** ·
-**[Informar de un fallo](https://github.com/Alexivz/steam-art-studio/issues/new/choose)** ·
-**[Compatibilidad y pruebas](docs/PORTABILIDAD.md)**
+**Dale otra imagen a tu biblioteca de Steam.**
 
-| Sistema | Descarga recomendada |
-| --- | --- |
-| Windows 10/11 x64 | ZIP portable o instalador por usuario |
-| Linux x86_64 | AppImage (glibc 2.35+ y pila de escritorio) o Flatpak |
-| Ubuntu/Debian compatible | DEB con dependencias Qt del sistema |
-| Distribuciones RPM | Consultar la matriz y el estado del RPM de esta entrega |
+Carátulas, fondos, logotipos, iconos y animaciones.<br>
+Una aplicación de escritorio independiente. Todo en un mismo espacio.
 
-Windows no está firmado con un certificado de código. Los hashes detectan cambios,
-pero no sustituyen una firma. Se incluyen fuentes y licencias de las dependencias.
+[![Linux AppImage 1.0.1](https://img.shields.io/badge/Linux-AppImage_1.0.1-70e2cb?style=for-the-badge&labelColor=14212b)](https://github.com/Alexivz/steam-art-studio/releases/tag/v1.0.1)
+[![Windows x64 1.0.0](https://img.shields.io/badge/Windows-x64_1.0.0-a8bdd2?style=for-the-badge&labelColor=14212b)](https://github.com/Alexivz/steam-art-studio/releases/tag/v1.0.0)
+[![Licencia GPL-3.0-only](https://img.shields.io/badge/Licencia-GPL--3.0--only-70e2cb?style=for-the-badge&labelColor=14212b)](LICENSE)
+
+[Descargas](#descargas) · [Así se ve](#así-se-ve) · [Primeros pasos](#primeros-pasos) · [Documentación](#documentación) · [Reportar un fallo](https://github.com/Alexivz/steam-art-studio/issues/new/choose)
+
+</div>
+
+> **Nuevo en 1.0.1 · Corrección Linux:** las consultas a SteamGridDB ya no se
+> cortan a los 5 segundos. Se distingue un error de un resultado vacío y se añade
+> **Reintentar búsqueda**. [Ver cambios y pruebas →](docs/RELEASE-1.0.1.md)
+
+## Pensado para trabajar sin saltar entre pestañas
+
+| Explora | Compara | Decide |
+| :--- | :--- | :--- |
+| Biblioteca, favoritos y colecciones locales. | Imagen actual y diseño nuevo, juntos. | Prepara una cola y confirma antes de aplicar. |
+| Diseños de SteamGridDB o imágenes locales. | Animaciones con calidad Original por defecto. | Copias restaurables y comprobación de conflictos. |
+
+## Así se ve
+
+![Biblioteca y editor de Steam Art Studio en una pantalla continua](docs/media/workspace.png)
+
+<p align="center"><sub>Captura en modo demostración: juegos y diseños sintéticos, sin cuentas ni claves personales. Los paquetes arrancan en modo normal.</sub></p>
+
+<details>
+<summary><strong>Ver la comparación antes de preparar un cambio</strong></summary>
+
+![Comparación de una imagen actual y un diseño nuevo, todavía sin aplicar](docs/media/comparison.png)
+
+La vista previa no aplica imágenes. Preparar tampoco: la escritura en Steam
+requiere una confirmación explícita y conserva una copia restaurable.
+
+</details>
+
+## Descargas
+
+| Tu sistema | Paquete | Versión |
+| :--- | :--- | :--- |
+| **Linux x86_64** | **[AppImage · descargar](https://github.com/Alexivz/steam-art-studio/releases/download/v1.0.1/steam-art-studio-1.0.1-linux-x86_64.AppImage)** | **1.0.1 · incluye la corrección de consultas** |
+| Windows 10/11 x64 | [ZIP portable](https://github.com/Alexivz/steam-art-studio/releases/download/v1.0.0/steam-art-studio-1.0.0-windows-x86_64.zip) · [Instalador por usuario](https://github.com/Alexivz/steam-art-studio/releases/download/v1.0.0/steam-art-studio-1.0.0-windows-x86_64-setup.exe) | 1.0.0 |
+| Linux · otros formatos | [Flatpak, DEB y RPM](https://github.com/Alexivz/steam-art-studio/releases/tag/v1.0.0) | 1.0.0 · no incluyen el parche 1.0.1 |
+| Código y licencias | [Fuentes y SHA256](https://github.com/Alexivz/steam-art-studio/releases/tag/v1.0.1) | 1.0.1 |
+
+**Requisitos:** AppImage necesita glibc 2.35+ y un escritorio Linux con su pila
+gráfica y certificados. Windows se ha comprobado bajo Wine; no equivale a una
+certificación nativa completa. Consulta la [matriz de compatibilidad](docs/PORTABILIDAD.md).
+Los paquetes no están firmados. Comprueba los hashes antes de ejecutar.
+
+## Primeros pasos
+
+1. **Abre** el AppImage o extrae el ZIP completo y abre `steam-art-studio.exe`.
+2. **Elige un juego y formato.** Puedes usar una imagen local sin clave o cargar
+   tu clave SteamGridDB dentro de la aplicación para buscar diseños.
+3. **Compara y prepara.** Revisa la cola y confirma solo cuando quieras aplicar.
+
+```bash
+# Linux: ejecutar sin instalar y sin --demo
+chmod +x steam-art-studio-1.0.1-linux-x86_64.AppImage
+./steam-art-studio-1.0.1-linux-x86_64.AppImage
+```
+
+¿Falta FUSE? Añade `--appimage-extract-and-run`. Para actualizar, cierra
+normalmente la versión anterior: **no borres datos, cola, caché ni copias**.
+
+## Lo importante, sin letra pequeña
+
+- **Original por defecto.** Sin reducción automática de calidad al fallar.
+- **Tú confirmas.** Arrancar, explorar y previsualizar no escriben en Steam.
+- **Tu clave no va al repositorio.** Solo memoria o KWallet en Linux; nunca JSON
+  ni diagnósticos. No se envían informes automáticamente.
+- **Pruebas, no promesas universales.** El parche pasó 38 pruebas de red, 25 de
+  interfaz y el resto del pipeline local; Ubuntu CTest 6/6. Falta confirmar la
+  conexión concreta del equipo que reportó el fallo. [Validación →](docs/RELEASE-1.0.1.md)
+
+## Documentación
+
+| Quiero… | Guía |
+| :--- | :--- |
+| Elegir paquete o compilar | [Compatibilidad y distribución](docs/PORTABILIDAD.md) |
+| Entender animaciones y calidad | [Calidad y modo normal](docs/CALIDAD-Y-MODO-NORMAL.md) · [Descargas](docs/DESCARGAS-ANIMADAS.md) |
+| Conocer las protecciones | [Fiabilidad y recuperación](docs/FIABILIDAD.md) · [Iconos](docs/ICONOS.md) |
+| Revisar novedades | [Historial de cambios](CHANGELOG.md) |
+| Informar de un problema | [Abrir una incidencia](https://github.com/Alexivz/steam-art-studio/issues/new/choose) |
+
+<details>
+<summary><strong>Guía completa: biblioteca, atajos, animaciones, compilación y datos</strong></summary>
+
 
 ## Una sola pantalla de trabajo
 
@@ -230,3 +306,15 @@ el enlace **público** del diseño si puedes. Revisa las capturas y diagnóstico
 no publiques claves API, cookies, cuentas ni configuración personal. No se envían
 informes automáticamente. Conserva las copias y evita seguir aplicando cambios
 si detectas un conflicto hasta revisarlo.
+
+</details>
+
+---
+
+<div align="center">
+
+Hecho por [Alexivz](https://github.com/Alexivz) · C++17 / Qt 6 · [GPL-3.0-only](LICENSE)
+
+<sub>Proyecto independiente. No es una aplicación oficial de Valve ni reemplaza Steam Art Manager.<br>Las marcas y los diseños de terceros pertenecen a sus respectivos propietarios.</sub>
+
+</div>

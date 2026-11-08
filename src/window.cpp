@@ -61,10 +61,10 @@ Window::Window(const QString &data, const QString &cache, bool demo, QWidget *pa
         if (!m_assetRequests.contains(token)) return;
         const auto request = m_assetRequests.take(token); if (request.purpose != "thumb") message(error, true);
     });
-    connect(&m_art, &ArtService::loading, this, [this](const QString &text) { m_loadingArt = true; m_artStatus->setText(text); m_gallery->setEmptyState("Buscando diseños…", "Puedes seguir explorando tu biblioteca mientras se completa la consulta."); updateActions(); });
-    connect(&m_art, &ArtService::error, this, [this](const QString &text) { m_loadingArt = false; m_artStatus->setText(text); m_pages->setText("Sin resultados"); m_gallery->setEmptyState(m_network.hasApiKey() ? "No hay diseños disponibles" : "Descubre otro aspecto", m_network.hasApiKey() ? "Ajusta los filtros, busca otro título o utiliza una imagen local." : "Conecta SteamGridDB para explorar la comunidad, o prepara una imagen local sin conexión."); updateActions(); });
+    connect(&m_art, &ArtService::loading, this, [this](const QString &text) { m_loadingArt = true; m_artFailed = false; m_artStatus->setText(text); m_pages->setText("Consultando…"); m_gallery->setEmptyState("Buscando diseños…", "Puedes seguir explorando tu biblioteca mientras se completa la consulta."); updateActions(); });
+    connect(&m_art, &ArtService::error, this, [this](const QString &text) { m_loadingArt = false; m_artFailed = true; m_artStatus->setText(text); m_pages->setText("Consulta no completada"); m_gallery->setEmptyState(m_network.hasApiKey() ? "No se pudieron consultar los diseños" : "Descubre otro aspecto", m_network.hasApiKey() ? "No se ha confirmado si hay diseños. Puedes reintentar la búsqueda o usar una imagen local." : "Conecta SteamGridDB para explorar la comunidad, o prepara una imagen local sin conexión."); updateActions(); });
     connect(&m_art, &ArtService::results, this, [this](const QVector<Artwork> &art, int page, int total, bool cached) {
-        m_loadingArt = false; m_artModel.setArtworks(art); m_page = page; m_total = total;
+        m_loadingArt = false; m_artFailed = false; m_artModel.setArtworks(art); m_page = page; m_total = total;
         m_pages->setText(QString("Página %1 · %2 diseños").arg(page + 1).arg(total));
         m_artStatus->setText(art.isEmpty() ? "No hay diseños con estos filtros. Puedes usar una imagen local." : cached ? "Desde tu caché · sin esperar otra descarga" : "Diseños de la comunidad · selecciona uno para prepararlo");
         m_gallery->setEmptyState("Sin diseños con estos filtros", "Prueba otro formato o activa imágenes estáticas o animadas."); updateActions();
@@ -153,7 +153,8 @@ void Window::buildUi() {
     m_typeNotice = label({}, "typeNotice"); m_typeNotice->setWordWrap(true); m_typeNotice->setVisible(false); detailLayout->addWidget(m_typeNotice);
     auto filters = new QHBoxLayout; m_static = new QCheckBox("Estáticas"); m_static->setChecked(true); m_animated = new QCheckBox("Animadas"); m_animated->setChecked(true); m_adult = new QCheckBox("Adultos");
     filters->addWidget(m_static); filters->addWidget(m_animated); filters->addStretch(); filters->addWidget(m_adult); detailLayout->addLayout(filters);
-    m_artStatus = label("Las carátulas actuales se leen de Steam. Conecta SteamGridDB para explorar diseños nuevos.", "muted"); m_artStatus->setWordWrap(true); detailLayout->addWidget(m_artStatus);
+    m_artStatus = label("Las carátulas actuales se leen de Steam. Conecta SteamGridDB para explorar diseños nuevos.", "muted"); m_artStatus->setProperty("testId", "artStatus"); m_artStatus->setWordWrap(true); detailLayout->addWidget(m_artStatus);
+    m_retryArt = button("Reintentar búsqueda", "retryArtSearch"); m_retryArt->setIcon(Ui::icon(Ui::Symbol::Refresh)); detailLayout->addWidget(m_retryArt); connect(m_retryArt, &QPushButton::clicked, this, [this] { if (!m_loadingArt && !m_busy && m_game.appId && m_network.hasApiKey()) fetchArt(); });
     m_gallery = new CardView; m_gallery->setObjectName("artGallery"); m_gallery->setAccessibleName("Diseños disponibles"); m_gallery->setModel(&m_artModel); m_gallery->setGridSize(QSize(148, 250));
     m_artDelegate = new CardDelegate(&m_loader, true, m_gallery); m_gallery->setItemDelegate(m_artDelegate); detailLayout->addWidget(m_gallery, 1);
     auto pages = new QHBoxLayout; auto previous = button(""); auto next = button(""); m_previous = previous; m_next = next; previous->setIcon(Ui::icon(Ui::Symbol::Left)); next->setIcon(Ui::icon(Ui::Symbol::Right)); previous->setAccessibleName("Página anterior"); next->setAccessibleName("Página siguiente"); m_pages = label("Sin selección", "muted"); pages->addWidget(previous); pages->addWidget(m_pages, 1, Qt::AlignCenter); pages->addWidget(next);
@@ -292,8 +293,10 @@ void Window::updateActions() {
     m_local->setEnabled(selected && !m_busy);
     m_currentButton->setEnabled(selected && !m_currentFile.isEmpty());
     m_searchTitle->setEnabled(selected && !m_demo && !m_busy);
-    m_previous->setEnabled(!m_demo && !m_loadingArt && m_page > 0);
-    m_next->setEnabled(!m_demo && !m_loadingArt && (m_page + 1) * 50 < m_total);
+    m_previous->setEnabled(!m_demo && !m_loadingArt && !m_artFailed && m_page > 0);
+    m_next->setEnabled(!m_demo && !m_loadingArt && !m_artFailed && (m_page + 1) * 50 < m_total);
+    m_retryArt->setVisible(m_artFailed && selected && !m_demo && m_network.hasApiKey());
+    m_retryArt->setEnabled(!m_loadingArt && !m_busy && selected && m_network.hasApiKey());
     m_favorite->setEnabled(selected);
     const bool favorite = selected && m_favorites.contains(m_game.key());
     m_favorite->setChecked(favorite);
@@ -373,7 +376,7 @@ void Window::refilter() {
     else {
         clearInlinePreview();
         m_game = Game(); m_art.invalidate(); m_artModel.setArtworks({});
-        m_gameTitle->setText("Selecciona un juego"); m_loadingArt = false; m_total = 0;
+        m_gameTitle->setText("Selecciona un juego"); m_loadingArt = false; m_artFailed = false; m_total = 0;
         m_artStatus->setText("No hay juegos con estos filtros."); m_pages->setText("Sin selección");
         m_gallery->setEmptyState("Selecciona un juego", "Aquí podrás explorar sus carátulas, fondos y logotipos.");
     }
@@ -397,7 +400,7 @@ void Window::selectType(const QString &type) {
 void Window::fetchArt() {
     if (!m_game.appId) return;
     auto keys = m_assetRequests.keys(); for (auto key : keys) if (m_assetRequests.value(key).purpose == "thumb") { m_assetRequests.remove(key); m_network.cancel(key); }
-    m_loadingArt = false; m_total = 0; m_artModel.setArtworks({}); updateActions();
+    m_loadingArt = false; m_artFailed = false; m_total = 0; m_artModel.setArtworks({}); updateActions();
     if (m_demo) {
         if (!m_static->isChecked()) { m_gallery->setEmptyState("Sin diseños estáticos", "Los diseños ficticios de esta demostración son estáticos. Activa Estáticas para mostrarlos."); m_artStatus->setText("Demostración: solo diseños estáticos."); m_pages->setText("0 diseños"); return; }
         QVector<Artwork> artworks;

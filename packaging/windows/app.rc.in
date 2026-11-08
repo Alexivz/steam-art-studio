@@ -1,8 +1,8 @@
 #include <windows.h>
 IDI_ICON1 ICON "@CMAKE_CURRENT_SOURCE_DIR@/assets/steam-art-studio.ico"
 1 VERSIONINFO
-FILEVERSION 1,0,0,0
-PRODUCTVERSION 1,0,0,0
+FILEVERSION 1,0,1,0
+PRODUCTVERSION 1,0,1,0
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -12,8 +12,8 @@ BEGIN
     BEGIN
       VALUE "FileDescription", "Steam Art Studio\0"
       VALUE "ProductName", "Steam Art Studio\0"
-      VALUE "FileVersion", "1.0.0\0"
-      VALUE "ProductVersion", "1.0.0\0"
+      VALUE "FileVersion", "1.0.1\0"
+      VALUE "ProductVersion", "1.0.1\0"
       VALUE "LegalCopyright", "Steam Art Studio contributors; GPL-3.0-only\0"
     END
   END

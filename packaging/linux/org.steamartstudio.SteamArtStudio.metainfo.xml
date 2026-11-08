@@ -17,6 +17,7 @@
   <launchable type="desktop-id">org.steamartstudio.SteamArtStudio.desktop</launchable>
   <provides><binary>steam-art-studio</binary></provides>
   <releases>
+    <release version="1.0.1" date="2026-11-08" type="stable"/>
     <release version="1.0.0" date="2026-11-08" type="stable"/>
     <release version="0.6.2-preview" date="2026-11-08" type="development"/>
     <release version="0.6.1-preview" date="2026-11-08" type="development"/>

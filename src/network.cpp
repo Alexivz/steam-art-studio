@@ -94,6 +94,11 @@ void Network::pump() {
     emit activity(m_active, m_queue.size());
 }
 void Network::start(const QSharedPointer<Job> &job) {
+    if (job->kind == "api" && job->elapsed.isValid() && job->elapsed.elapsed() >= qMax(1, m_policy.apiDeadlineMs)) {
+        m_jobs.remove(job->key);
+        QTimer::singleShot(0, this, [this, job] { for (auto token : job->tokens) deliverFailure(token, "Se agotó el tiempo de espera total de la consulta. Puedes pulsar Reintentar búsqueda."); });
+        return;
+    }
     const qint64 delay = m_backoffHosts.value(job->current.host()) - QDateTime::currentMSecsSinceEpoch();
     if (delay > 0) {
         m_jobs.remove(job->key);
@@ -102,14 +107,18 @@ void Network::start(const QSharedPointer<Job> &job) {
         });
         return;
     }
-    job->active = true; job->data.clear(); job->oversized = false; job->timedOut = false; job->timeoutMessage.clear(); ++m_active; if (job->kind != "api") ++m_images;
+    job->active = true; job->data.clear(); job->oversized = false; job->timedOut = false; job->deadlineExpired = false; job->timeoutMessage.clear(); ++m_active; if (job->kind != "api") ++m_images;
+    if (!job->elapsed.isValid()) job->elapsed.start();
+    const bool api = job->kind == "api";
     const bool original = job->kind == "original";
-    const int connectionMs = qMax(1, original ? m_policy.originalConnectionMs : m_policy.connectionMs);
-    const int transferMs = qMax(1, original ? m_policy.originalTransferMs : m_policy.transferMs);
-    const int deadlineMs = qMax(1, original ? m_policy.originalDeadlineMs : m_policy.deadlineMs);
+    const int connectionMs = qMax(1, api ? m_policy.apiResponseMs : original ? m_policy.originalConnectionMs : m_policy.connectionMs);
+    const int transferMs = qMax(1, api ? m_policy.apiTransferMs : original ? m_policy.originalTransferMs : m_policy.transferMs);
+    const int totalMs = qMax(1, api ? m_policy.apiDeadlineMs : original ? m_policy.originalDeadlineMs : m_policy.deadlineMs);
+    const int deadlineMs = api ? int(qMax<qint64>(1, totalMs - job->elapsed.elapsed())) : totalMs;
+    const QString retryHint = api ? " Puedes pulsar Reintentar búsqueda." : original ? " Puedes reintentar la descarga desde Descargas." : " Vuelve a buscar los diseños para cargar las miniaturas.";
     QNetworkRequest request(job->current); request.setRawHeader("User-Agent", "Steam-Art-Studio/" + QCoreApplication::applicationVersion().toLatin1() + " (" + QSysInfo::kernelType().toLatin1() + "; Qt)");
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
-    request.setTransferTimeout(transferMs);
+    request.setTransferTimeout(api ? qMax(connectionMs, transferMs) : transferMs);
     if (job->kind == "api") { request.setRawHeader("Accept", "application/json"); request.setRawHeader("Authorization", "Bearer " + m_key.toUtf8()); }
     auto reply = m_transport->get(request); job->reply = reply;
     reply->setReadBufferSize(256 * 1024);
@@ -118,18 +127,23 @@ void Network::start(const QSharedPointer<Job> &job) {
         job->timedOut = true; job->timeoutMessage = message; reply->abort();
     };
     auto connectTimer = new QTimer(reply); connectTimer->setSingleShot(true); connectTimer->start(connectionMs);
-    connect(connectTimer, &QTimer::timeout, this, [timeout, connectionMs] {
-        timeout(QString("Se agotó el tiempo de espera al iniciar la conexión (%1 s). Puedes reintentar la descarga desde Descargas.").arg(connectionMs / 1000.));
+    connect(connectTimer, &QTimer::timeout, this, [timeout, connectionMs, api, retryHint] {
+        timeout((api ? QString("SteamGridDB no respondió a tiempo (%1 s).") : QString("Se agotó el tiempo de espera al iniciar la conexión (%1 s).")).arg(connectionMs / 1000.) + retryHint);
     });
-    connect(reply, &QNetworkReply::encrypted, connectTimer, &QTimer::stop);
+    // encrypted() may be absent on reused HTTPS connections. For the API this
+    // timer measures first response, not DNS/TCP/TLS, on every connection.
+    if (!api) connect(reply, &QNetworkReply::encrypted, connectTimer, &QTimer::stop);
     connect(reply, &QNetworkReply::metaDataChanged, connectTimer, &QTimer::stop);
-    auto idle = new QTimer(reply); idle->setSingleShot(true); idle->start(transferMs);
-    connect(idle, &QTimer::timeout, this, [timeout, transferMs] {
-        timeout(QString("Se agotó el tiempo de espera: no se recibieron datos durante %1 s. Puedes reintentar la descarga desde Descargas.").arg(transferMs / 1000.));
+    auto idle = new QTimer(reply); idle->setSingleShot(true);
+    if (!api) idle->start(transferMs);
+    else connect(reply, &QNetworkReply::metaDataChanged, idle, [idle, transferMs] { if (!idle->isActive()) idle->start(transferMs); });
+    connect(idle, &QTimer::timeout, this, [timeout, transferMs, retryHint] {
+        timeout(QString("Se agotó el tiempo de espera: no se recibieron datos durante %1 s.").arg(transferMs / 1000.) + retryHint);
     });
     auto deadline = new QTimer(reply); deadline->setSingleShot(true); deadline->start(deadlineMs);
-    connect(deadline, &QTimer::timeout, this, [timeout, deadlineMs] {
-        timeout(QString("Se agotó el tiempo de espera total de la descarga (%1 s). Puedes reintentar o descargar el archivo en el navegador y usar Imagen local. No se ha modificado Steam.").arg(deadlineMs / 1000.));
+    connect(deadline, &QTimer::timeout, this, [timeout, job, totalMs, api, retryHint] {
+        job->deadlineExpired = true;
+        timeout((api ? QString("Se agotó el tiempo de espera total de la consulta (%1 s).") : QString("Se agotó el tiempo de espera total de la descarga (%1 s).")).arg(totalMs / 1000.) + retryHint);
     });
     connect(reply, &QIODevice::readyRead, this, [job, reply, connectTimer, idle, transferMs] {
         const qint64 maximum = job->kind == "api" ? 2 * 1024 * 1024 : job->kind == "original" ? 64 * 1024 * 1024 : 8 * 1024 * 1024;
@@ -146,7 +160,8 @@ void Network::finish(const QSharedPointer<Job> &job) {
     if (job->cancelled) { job->data.clear(); reply->deleteLater(); job->reply = nullptr; pump(); return; }
     if (!job->timedOut && reply->error() == QNetworkReply::TimeoutError) {
         job->timedOut = true;
-        job->timeoutMessage = "Se agotó el tiempo de espera de la transferencia. Puedes reintentar la descarga desde Descargas.";
+        job->timeoutMessage = job->kind == "api" ? "Se agotó el tiempo de espera de la consulta a SteamGridDB. Puedes pulsar Reintentar búsqueda." : "Se agotó el tiempo de espera de la transferencia.";
+        if (job->kind == "original") job->timeoutMessage += " Puedes reintentar la descarga desde Descargas.";
     }
     if (reply->isOpen()) job->data.append(reply->readAll());
     const qint64 maximum = job->kind == "api" ? 2 * 1024 * 1024 : job->kind == "original" ? 64 * 1024 * 1024 : 8 * 1024 * 1024;
@@ -161,14 +176,18 @@ void Network::finish(const QSharedPointer<Job> &job) {
         m_backoffHosts[job->current.host()] = until; m_backoffHosts[job->original.host()] = until;
     }
     const auto redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-    if (status >= 300 && status < 400 && redirect.isValid() && job->redirects++ < 3) {
+    if (!job->timedOut && !job->oversized && reply->error() == QNetworkReply::NoError && status >= 300 && status < 400 && redirect.isValid() && job->redirects++ < 3) {
         auto next = job->current.resolved(redirect);
         if (allowed(next, job->kind == "api")) { job->current = next; reply->deleteLater(); job->reply = nullptr; m_queue.prepend(job); pump(); return; }
     }
     // Rate limits are surfaced to the user, never retried before Retry-After.
-    const bool retryable = !job->oversized && !job->timedOut && (status == 408 || status >= 500 || (status == 0 && reply->error() != QNetworkReply::NoError));
+    const auto transportError = reply->error();
+    const bool transient = transportError == QNetworkReply::ConnectionRefusedError || transportError == QNetworkReply::RemoteHostClosedError || transportError == QNetworkReply::HostNotFoundError || transportError == QNetworkReply::TemporaryNetworkFailureError;
+    const bool apiTimeout = job->kind == "api" && job->timedOut && !job->deadlineExpired && status != 401 && status != 403 && status != 429;
+    const bool budget = job->kind != "api" || job->elapsed.elapsed() + qMax(0, m_policy.retryMs) < qMax(1, m_policy.apiDeadlineMs);
+    const bool retryable = !job->oversized && budget && transportError != QNetworkReply::SslHandshakeFailedError && (apiTimeout || (!job->timedOut && (status == 408 || status >= 500 || (status == 0 && transient))));
     if (retryable && job->attempts++ < 1 && !job->tokens.isEmpty()) {
-        const int wait = m_policy.retryMs;
+        const int wait = qMax(0, m_policy.retryMs);
         reply->deleteLater(); job->reply = nullptr;
         QTimer::singleShot(wait, this, [this, job] { if (m_jobs.value(job->key) == job) { m_queue.append(job); pump(); } }); pump(); return;
     }

@@ -40,7 +40,7 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 private:
     QString m_dataDirectory;
-    bool m_demo = false, m_busy = false, m_loadingArt = false;
+    bool m_demo = false, m_busy = false, m_loadingArt = false, m_artFailed = false;
     CacheStore m_cache;
     Network m_network;
     ArtService m_art;
@@ -101,6 +101,7 @@ private:
     QPushButton *m_favorite = nullptr, *m_apply = nullptr, *m_restore = nullptr;
     QPushButton *m_stage = nullptr, *m_preview = nullptr, *m_local = nullptr, *m_currentButton = nullptr;
     QPushButton *m_previous = nullptr, *m_next = nullptr, *m_searchTitle = nullptr, *m_connectButton = nullptr;
+    QPushButton *m_retryArt = nullptr;
     QProgressBar *m_progress = nullptr;
     QListWidget *m_queueList = nullptr, *m_backups = nullptr;
     QListView *m_downloadView = nullptr;

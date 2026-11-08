@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
     ::umask(0077);
 #endif
     QApplication app(argc, argv);
-    QCoreApplication::setOrganizationName("SteamArtStudio"); QCoreApplication::setApplicationName("steam-art-studio"); QCoreApplication::setApplicationVersion("1.0.0");
+    QCoreApplication::setOrganizationName("SteamArtStudio"); QCoreApplication::setApplicationName("steam-art-studio"); QCoreApplication::setApplicationVersion("1.0.1");
     QApplication::setWindowIcon(QIcon(":/studio/steam-art-studio.svg"));
     QImageReader::setAllocationLimit(128);
     QCommandLineParser parser; parser.setApplicationDescription("Biblioteca y carátulas de Steam · aplicación independiente"); parser.addHelpOption(); parser.addVersionOption();

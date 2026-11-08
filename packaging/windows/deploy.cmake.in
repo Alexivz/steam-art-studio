@@ -1,0 +1,11 @@
+# Runs only when staging/installing a Windows build. Never reads user data.
+set(destination "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}")
+execute_process(COMMAND "@STUDIO_WINDEPLOYQT@" --release --compiler-runtime
+  --no-translations --dir "${destination}" "${destination}/steam-art-studio.exe"
+  RESULT_VARIABLE result)
+if(NOT result EQUAL 0)
+  message(FATAL_ERROR "windeployqt failed; refusing to produce an incomplete Windows package")
+endif()
+if(NOT EXISTS "${destination}/platforms/qwindows.dll")
+  message(FATAL_ERROR "Windows platform plugin missing from deployed runtime")
+endif()

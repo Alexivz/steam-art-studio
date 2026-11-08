@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Steam Art Studio
+Comment=Manage Steam artwork with previews and restorable backups
+Comment[es]=Personaliza el arte de Steam con vista previa y copias restaurables
+Exec=steam-art-studio
+Icon=org.steamartstudio.SteamArtStudio
+Terminal=false
+Categories=Game;Utility;
+StartupWMClass=steam-art-studio
+Keywords=Steam;artwork;library;covers;

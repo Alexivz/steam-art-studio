@@ -1,0 +1,50 @@
+name: Informar de un fallo / Bug report
+description: Ayúdanos a reproducir y corregir un problema sin compartir datos privados.
+title: "[Fallo] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por probar Steam Art Studio. No incluyas claves API, contraseñas,
+        cookies, cuentas Steam, copias de seguridad ni archivos de configuración.
+        Revisa y oculta datos privados en capturas y registros antes de publicarlos.
+  - type: input
+    id: version
+    attributes:
+      label: Versión de Steam Art Studio
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Sistema y versión
+      placeholder: "Windows 11 x64 / Ubuntu 24.04 KDE Wayland / ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: package
+    attributes:
+      label: Paquete utilizado
+      options:
+        - ZIP Windows
+        - Instalador Windows
+        - AppImage
+        - Flatpak
+        - DEB
+        - RPM
+        - Compilado desde fuentes
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducirlo
+      description: Qué hiciste, qué esperabas y qué ocurrió. Incluye el error exacto si aparece.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Captura o diagnóstico revisado (opcional)
+      description: Para animaciones, puedes añadir el enlace público del diseño. Nunca una URL con claves o cookies.

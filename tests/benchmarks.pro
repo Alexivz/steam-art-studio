@@ -1,0 +1,9 @@
+QT = core
+CONFIG += c++17 console release
+TEMPLATE = app
+TARGET = studio-benchmarks
+INCLUDEPATH += ../src
+SOURCES += benchmarks.cpp ../src/libraryindex.cpp
+HEADERS += ../src/libraryindex.h ../src/types.h
+DESTDIR = $$OUT_PWD/bin
+OBJECTS_DIR = $$OUT_PWD/obj

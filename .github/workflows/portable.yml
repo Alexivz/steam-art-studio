@@ -1,0 +1,63 @@
+name: Portable preview builds (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: >-
+          sudo apt-get update && sudo apt-get install -y
+          build-essential cmake ninja-build pkg-config python3 qt6-base-dev
+          libqt6svg6-dev qt6-image-formats-plugins qt6-wayland libqt6opengl6-dev
+          libgl1-mesa-dev libegl1-mesa-dev libssl-dev libwebp-dev zlib1g-dev
+          nasm patchelf file desktop-file-utils appstream-util dpkg-dev rpm
+          squashfs-tools libfuse2 libxkbcommon-x11-0 libxcb-cursor0
+      - name: Build limited FFmpeg and application
+        run: |
+          mkdir -p /tmp/opencode
+          python3 packaging/tools/build_ffmpeg.py --cache "$RUNNER_TEMP/inputs" --output "$RUNNER_TEMP/ffmpeg"
+          cmake -S . -B build-portable -G Ninja -DCMAKE_BUILD_TYPE=Release -DSTUDIO_BUNDLED_FFMPEG_DIR="$RUNNER_TEMP/ffmpeg"
+          cmake --build build-portable --parallel 3
+          PATH="$RUNNER_TEMP/ffmpeg/bin:$PATH" ctest --test-dir build-portable --output-on-failure
+      - name: Stage local package candidates
+        run: |
+          mkdir dist
+          cpack --config build-portable/CPackConfig.cmake -G DEB -B dist
+          cpack --config build-portable/CPackConfig.cmake -G RPM -B dist
+          python3 packaging/tools/fetch_tool.py linuxdeploy --directory "$RUNNER_TEMP/appimage-tools"
+          python3 packaging/tools/fetch_tool.py linuxdeploy-plugin-qt --directory "$RUNNER_TEMP/appimage-tools"
+          python3 packaging/tools/fetch_tool.py runtime-x86_64 --directory "$RUNNER_TEMP/appimage-tools"
+          python3 packaging/tools/appimage_sources.py --output "$RUNNER_TEMP/runtime-source" --notices "$RUNNER_TEMP/runtime-notices"
+          python3 packaging/linux/appimage.py --build build-portable --appdir "$RUNNER_TEMP/AppDir" --tools "$RUNNER_TEMP/appimage-tools" --runtime-notices "$RUNNER_TEMP/runtime-notices" --output "$PWD/dist/steam-art-studio-linux-x86_64.AppImage"
+          python3 packaging/tools/archive_source.py --output dist/steam-art-studio-source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-preview-candidates-not-a-release
+          path: dist/*
+  windows-native:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          arch: win64_msvc2022_64
+          modules: qtimageformats
+          cache: true
+      - name: Build and test on native Windows
+        shell: pwsh
+        run: |
+          cmake -S . -B build-portable -A x64
+          cmake --build build-portable --config Release --parallel 3
+          ctest --test-dir build-portable -C Release --output-on-failure
+          cmake --install build-portable --config Release --prefix "$PWD/stage"
+          & "$PWD/stage/steam-art-studio.exe" --demo --smoke-test --data-dir "$env:RUNNER_TEMP/studio-data" --cache-dir "$env:RUNNER_TEMP/studio-cache"
+          python packaging/windows/package.py --stage stage --output dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-preview-without-ffmpeg-not-a-release
+          path: dist/*

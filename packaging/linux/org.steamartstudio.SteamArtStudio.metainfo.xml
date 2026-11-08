@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.steamartstudio.SteamArtStudio</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>Steam Art Studio</name>
+  <summary>Manage Steam artwork with previews and restorable backups</summary>
+  <summary xml:lang="es">Personaliza el arte de Steam con copias restaurables</summary>
+  <url type="homepage">https://github.com/Alexivz/steam-art-studio</url>
+  <url type="bugtracker">https://github.com/Alexivz/steam-art-studio/issues</url>
+  <description>
+    <p>An independent Qt application for local Steam artwork. Library, comparisons,
+    animation previews, pending changes, downloads and backups share one workspace.</p>
+    <p>Browsing and preparing artwork do not write to Steam. Applying and restoring
+    changes require confirmation. New community artwork requires your SteamGridDB key.</p>
+  </description>
+  <launchable type="desktop-id">org.steamartstudio.SteamArtStudio.desktop</launchable>
+  <provides><binary>steam-art-studio</binary></provides>
+  <releases>
+    <release version="1.0.0" date="2026-11-08" type="stable"/>
+    <release version="0.6.2-preview" date="2026-11-08" type="development"/>
+    <release version="0.6.1-preview" date="2026-11-08" type="development"/>
+    <release version="0.6.0-preview" date="2026-11-08" type="development"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

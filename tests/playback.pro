@@ -1,0 +1,11 @@
+QT = core gui widgets testlib
+CONFIG += c++17 testcase console warn_on
+TEMPLATE = app
+TARGET = studio-playback-tests
+INCLUDEPATH += ../src
+SOURCES += test_playback.cpp ../src/preview.cpp
+HEADERS += ../src/preview.h ../src/platform.h ../src/imageutils.h
+DESTDIR = $$OUT_PWD/bin
+OBJECTS_DIR = $$OUT_PWD/obj
+MOC_DIR = $$OUT_PWD/moc
+win32-msvc: QMAKE_CXXFLAGS += /utf-8

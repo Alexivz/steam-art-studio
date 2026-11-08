@@ -1,0 +1,11 @@
+QT = core gui network testlib
+CONFIG += c++17 testcase console warn_on
+TEMPLATE = app
+TARGET = studio-portable-tests
+INCLUDEPATH += ../src
+SOURCES += test_portable.cpp ../src/valvekv.cpp ../src/steam.cpp ../src/cache.cpp ../src/network.cpp ../src/transactions.cpp ../src/libraryindex.cpp ../src/draft.cpp ../src/transfers.cpp ../src/animation.cpp
+HEADERS += ../src/network.h ../src/transfers.h ../src/platform.h
+DESTDIR = $$OUT_PWD/bin
+OBJECTS_DIR = $$OUT_PWD/obj
+MOC_DIR = $$OUT_PWD/moc
+win32-msvc: QMAKE_CXXFLAGS += /utf-8

@@ -1,0 +1,10 @@
+QT = core network testlib
+CONFIG += c++17 testcase console
+TEMPLATE = app
+TARGET = studio-network-tests
+INCLUDEPATH += ../src
+SOURCES += test_network.cpp ../src/network.cpp ../src/cache.cpp ../src/transfers.cpp
+HEADERS += fakenetwork.h ../src/network.h ../src/cache.h ../src/transfers.h ../src/types.h
+DESTDIR = $$OUT_PWD/bin
+OBJECTS_DIR = $$OUT_PWD/obj
+MOC_DIR = $$OUT_PWD/moc

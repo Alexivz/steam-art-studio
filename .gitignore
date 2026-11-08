@@ -1,0 +1,8 @@
+/build*/
+/dist/
+__pycache__/
+*.user
+# Local agent handover/history are not public application source.
+/AGENTS.md
+/CONTINUAR.md
+/docs/HISTORIAL-*.md

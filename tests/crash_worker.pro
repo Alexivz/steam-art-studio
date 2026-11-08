@@ -1,0 +1,11 @@
+QT = core gui
+CONFIG += c++17 console
+TEMPLATE = app
+TARGET = studio-crash-worker
+INCLUDEPATH += ../src
+SOURCES += crash_worker.cpp ../src/transactions.cpp ../src/steam.cpp ../src/valvekv.cpp ../src/cache.cpp
+HEADERS += ../src/transactions.h ../src/steam.h ../src/types.h ../src/valvekv.h ../src/cache.h ../src/imageutils.h
+DESTDIR = $$OUT_PWD/bin
+OBJECTS_DIR = $$OUT_PWD/obj
+SOURCES += ../src/animation.cpp
+HEADERS += ../src/animation.h
